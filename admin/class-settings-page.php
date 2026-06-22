@@ -142,6 +142,25 @@ class WOOLENS_Settings_Page {
             add_settings_error( self::OPT_GRP, 'account_removed', 'Account disconnected.', 'success' );
         }
 
+        // Check for plugin updates — clear transient so fresh fetch happens
+        if (
+            isset( $_POST['woolens_check_updates'] ) &&
+            check_admin_referer( 'woolens_account_nonce' )
+        ) {
+            delete_transient( 'woolens_remote_version' );
+            $info = WOOLENS_Updater::get_remote_info_public();
+            if ( $info && version_compare( $info['version'], WOOLENS_VERSION, '>' ) ) {
+                add_settings_error( self::OPT_GRP, 'update_found',
+                    'New version <strong>' . esc_html( $info['version'] ) . '</strong> is available! Go to <a href="' . esc_url( admin_url('plugins.php') ) . '">Plugins</a> to update.',
+                    'warning'
+                );
+            } elseif ( $info ) {
+                add_settings_error( self::OPT_GRP, 'update_none', 'You are using the latest version (' . esc_html( WOOLENS_VERSION ) . ').', 'success' );
+            } else {
+                add_settings_error( self::OPT_GRP, 'update_fail', 'Could not reach update server. Please try again later.', 'error' );
+            }
+        }
+
         // Refresh Pro status — call API fresh, update plan_expires, reset transient
         if (
             isset( $_POST['woolens_refresh_status'] ) &&
@@ -317,7 +336,10 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
                         <form method="post" style="margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
                             <?php wp_nonce_field( 'woolens_account_nonce' ); ?>
                             <button type="submit" name="woolens_refresh_status" value="1" class="button">
-                                🔄 Refresh Plan Status
+                                Refresh Plan Status
+                            </button>
+                            <button type="submit" name="woolens_check_updates" value="1" class="button">
+                                Check for Updates
                             </button>
                             <button type="submit" name="woolens_disconnect_account" value="1"
                                     class="button"

@@ -11,6 +11,11 @@ class WOOLENS_Updater {
         add_filter( 'plugins_api',                            [ __CLASS__, 'plugin_info' ], 10, 3 );
     }
 
+    /* ── Public wrapper for settings page (after cache clear) ───────── */
+    public static function get_remote_info_public() {
+        return self::get_remote_info();
+    }
+
     /* ── Fetch latest version info (cached 12 hours) ─────────────────── */
     private static function get_remote_info() {
         $cached = get_transient( 'woolens_remote_version' );
