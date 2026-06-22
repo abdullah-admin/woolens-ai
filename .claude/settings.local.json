@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.elevatepay.co)",
+      "Bash(xargs grep -l \"generate\\\\|limit\\\\|daily\")"
+    ]
+  }
+}
