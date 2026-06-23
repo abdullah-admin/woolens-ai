@@ -1,10 +1,10 @@
 <?php
 /**
  * Plugin Name:       WooLens AI
- * Plugin URI:        https://yoursite.com/woolens-ai
+ * Plugin URI:        https://woolensai.site
  * Description:       WooLens AI analyzes your WooCommerce product image and automatically writes the title and description for you. No typing. No ChatGPT tabs. Just click and done.
  * Version:           1.2.0
- * Author:            Your Name
+ * Author:            WooLens AI
  * License:           GPL-2.0+
  * Text Domain:       woolens-ai
  * Requires Plugins:  woocommerce
