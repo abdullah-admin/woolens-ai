@@ -227,6 +227,7 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
         $auth_sites_used   = (int) get_option( 'woolens_auth_sites_used',  0 );
         $server_url        = WOOLENS_SERVER_URL;
         $connected         = ! empty( $auth_token );
+        $disabled          = $connected ? '' : 'disabled';
         ?>
         <style>
         .wl-wrap { max-width: 680px; }
@@ -386,6 +387,12 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
                 </div>
             </div>
 
+            <?php if ( ! $connected ): ?>
+            <div style="background:#fff8e5;border:1px solid #f0c33c;border-radius:4px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:#996800;">
+                Connect your WooLens account above to configure settings.
+            </div>
+            <?php endif; ?>
+
             <form method="post" action="options.php">
                 <?php settings_fields( self::OPT_GRP ); ?>
 
@@ -398,7 +405,7 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
                             <div class="wl-pw-wrap">
                                 <input name="woolens_gemini_key" id="woolens_gemini_key" type="password"
                                        value="<?php echo esc_attr( self::get('woolens_gemini_key') ); ?>"
-                                       class="wl-input" autocomplete="off" placeholder="AQ...">
+                                       class="wl-input" autocomplete="off" placeholder="AQ..." <?php echo $disabled; ?>>
                                 <button type="button" class="wl-pw-toggle" onclick="wlTogglePw('woolens_gemini_key',this)" title="Show key">
                                     <span class="dashicons dashicons-visibility"></span>
                                 </button>
@@ -450,7 +457,7 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
                         <div class="wl-field">
                             <label class="wl-label">Writing Tone</label>
                             <?php $tone = self::get('woolens_tone','Professional'); ?>
-                            <select name="woolens_tone" class="wl-select">
+                            <select name="woolens_tone" class="wl-select" <?php echo $disabled; ?>>
                                 <?php foreach(['Professional','Friendly','Persuasive','Minimal','Luxury'] as $t): ?>
                                     <option <?php selected($tone,$t); ?>><?php echo esc_html($t); ?></option>
                                 <?php endforeach; ?>
@@ -464,7 +471,7 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
                 <?php if ( defined( 'WP_DEBUG' ) && WP_DEBUG && current_user_can( 'manage_options' ) ): ?>
                 <?php endif; ?>
 
-                <p><button type="submit" class="button button-primary">Save Settings</button></p>
+                <p><button type="submit" class="button button-primary" <?php echo $disabled; ?>>Save Settings</button></p>
             </form>
 
             <!-- Today's Usage -->
