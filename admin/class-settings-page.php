@@ -229,12 +229,12 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
         $connected         = ! empty( $auth_token );
         $disabled          = $connected ? '' : 'disabled';
 
-        // Expiry calculation
+        // Expiry calculation — runs regardless of is_pro so expired state is caught too
         $days_left  = null;
         $is_expired = false;
-        if ( $is_pro && ! empty( $auth_plan_expires ) ) {
-            $diff      = strtotime( $auth_plan_expires ) - time();
-            $days_left = (int) ceil( $diff / DAY_IN_SECONDS );
+        if ( $connected && ! empty( $auth_plan_expires ) ) {
+            $diff       = strtotime( $auth_plan_expires ) - time();
+            $days_left  = (int) ceil( $diff / DAY_IN_SECONDS );
             $is_expired = $diff <= 0;
         }
         ?>
@@ -312,18 +312,13 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
                             </p>
 
                             <?php
-                            // Expiry warning banner
+                            // 3-day countdown warning (only while still Pro)
                             $renew_url = esc_url( rtrim( $server_url, '/' ) . '/buy-pro' );
-                            if ( $is_expired ): ?>
-                                <div style="background:#fcf0f1;border:1px solid #d63638;border-radius:4px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-                                    <span style="font-size:13px;font-weight:600;color:#d63638;">Your Pro plan has expired. You are now on the Free plan.</span>
-                                    <a href="<?php echo $renew_url; ?>" target="_blank" class="button button-primary" style="background:#d63638;border-color:#d63638;flex-shrink:0;">Renew Pro</a>
-                                </div>
-                            <?php elseif ( $days_left !== null && $days_left <= 3 ):
-                                $warn_color = $days_left <= 1 ? '#d63638' : ( $days_left == 2 ? '#b45309' : '#996800' );
-                                $warn_bg    = $days_left <= 1 ? '#fcf0f1' : '#fffbeb';
-                                $warn_border= $days_left <= 1 ? '#d63638' : '#f0c33c';
-                                $days_text  = $days_left <= 0 ? 'today' : ( $days_left == 1 ? 'tomorrow' : 'in ' . $days_left . ' days' );
+                            if ( $days_left !== null && ! $is_expired && $days_left <= 3 ):
+                                $warn_color  = $days_left <= 1 ? '#d63638' : ( $days_left == 2 ? '#b45309' : '#996800' );
+                                $warn_bg     = $days_left <= 1 ? '#fcf0f1' : '#fffbeb';
+                                $warn_border = $days_left <= 1 ? '#d63638' : '#f0c33c';
+                                $days_text   = $days_left == 1 ? 'tomorrow' : 'in ' . $days_left . ' days';
                             ?>
                                 <div style="background:<?php echo $warn_bg; ?>;border:1px solid <?php echo $warn_border; ?>;border-radius:4px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                                     <span style="font-size:13px;font-weight:600;color:<?php echo $warn_color; ?>;">Your Pro plan expires <?php echo $days_text; ?>!</span>
@@ -354,13 +349,20 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
                                 <?php endif; ?>
                             </table>
                         <?php else: ?>
-                            <p style="color:#646970;font-size:13px;margin:0 0 12px">
-                                Free plan: <?php echo WOOLENS_Rate_Limiter::FREE_DAILY_LIMIT; ?> generations/day, English only.
-                            </p>
-                            <a href="<?php echo esc_url( rtrim( $server_url, '/' ) . '/buy-pro' ); ?>"
-                               target="_blank" class="button button-primary" style="margin-bottom:12px">
-                                Upgrade to Pro
-                            </a><br>
+                            <?php if ( $is_expired ): ?>
+                                <div style="background:#fcf0f1;border:1px solid #d63638;border-radius:4px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                                    <span style="font-size:13px;font-weight:600;color:#d63638;">Your Pro plan has expired. You are now on the Free plan.</span>
+                                    <a href="<?php echo esc_url( rtrim( $server_url, '/' ) . '/buy-pro' ); ?>" target="_blank" class="button button-primary" style="background:#d63638;border-color:#b91c1c;flex-shrink:0;">Renew Pro</a>
+                                </div>
+                            <?php else: ?>
+                                <p style="color:#646970;font-size:13px;margin:0 0 12px">
+                                    Free plan: <?php echo WOOLENS_Rate_Limiter::FREE_DAILY_LIMIT; ?> generations/day, English only.
+                                </p>
+                                <a href="<?php echo esc_url( rtrim( $server_url, '/' ) . '/buy-pro' ); ?>"
+                                   target="_blank" class="button button-primary" style="margin-bottom:12px">
+                                    Upgrade to Pro
+                                </a><br>
+                            <?php endif; ?>
                         <?php endif; ?>
 
                         <form method="post" style="margin-top:4px;display:flex;gap:8px;flex-wrap:wrap">
