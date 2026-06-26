@@ -53,6 +53,32 @@ class WOOLENS_Product_Editor {
         $limit  = WOOLENS_Rate_Limiter::FREE_DAILY_LIMIT;
         $pct    = $is_pro ? 0 : min( 100, $used ? round( $used / $limit * 100 ) : 0 );
         $bar_color = $pct >= 100 ? '#d63638' : ( $pct >= 70 ? '#dba617' : '#2271b1' );
+
+        // Expiry calculation
+        $expiry_banner = '';
+        if ( $is_pro ) {
+            $expires   = get_option( 'woolens_auth_plan_expires', '' );
+            $renew_url = esc_url( rtrim( WOOLENS_SERVER_URL, '/' ) . '/buy-pro' );
+            if ( ! empty( $expires ) ) {
+                $diff      = strtotime( $expires ) - time();
+                $days_left = (int) ceil( $diff / DAY_IN_SECONDS );
+                if ( $diff <= 0 ) {
+                    $expiry_banner = '<div style="margin-top:6px;padding:7px 12px;background:#fcf0f1;border:1px solid #d63638;border-radius:4px;font-size:12px;color:#d63638;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;">'
+                        . '<span>Pro plan expired — you are now on Free plan (10/day limit)</span>'
+                        . '<a href="' . $renew_url . '" target="_blank" style="background:#d63638;color:#fff;padding:3px 10px;border-radius:3px;text-decoration:none;font-size:11px;white-space:nowrap;">Renew Pro</a>'
+                        . '</div>';
+                } elseif ( $days_left <= 3 ) {
+                    $days_text = $days_left == 1 ? 'tomorrow' : 'in ' . $days_left . ' days';
+                    $clr       = $days_left == 1 ? '#d63638' : '#996800';
+                    $bg        = $days_left == 1 ? '#fcf0f1' : '#fffbeb';
+                    $bd        = $days_left == 1 ? '#d63638' : '#f0c33c';
+                    $expiry_banner = '<div style="margin-top:6px;padding:7px 12px;background:' . $bg . ';border:1px solid ' . $bd . ';border-radius:4px;font-size:12px;color:' . $clr . ';font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:10px;">'
+                        . '<span>Pro expires ' . $days_text . '!</span>'
+                        . '<a href="' . $renew_url . '" target="_blank" style="background:#2271b1;color:#fff;padding:3px 10px;border-radius:3px;text-decoration:none;font-size:11px;white-space:nowrap;">Renew Pro</a>'
+                        . '</div>';
+                }
+            }
+        }
         ?>
         <style>
         .wl-btn { display:inline-flex !important; align-items:center; gap:5px; font-size:12px !important; white-space:nowrap; }
@@ -107,6 +133,7 @@ class WOOLENS_Product_Editor {
             $('#postdivrich, #postdiv').after(
                 '<div id="wl-desc-wrap">' +
                 statusHtml +
+                <?php echo wp_json_encode( $expiry_banner ); ?> +
                 '<div class="wl-note" id="wl-desc-note"></div>' +
                 '</div>'
             );

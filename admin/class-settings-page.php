@@ -228,6 +228,15 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
         $server_url        = WOOLENS_SERVER_URL;
         $connected         = ! empty( $auth_token );
         $disabled          = $connected ? '' : 'disabled';
+
+        // Expiry calculation
+        $days_left  = null;
+        $is_expired = false;
+        if ( $is_pro && ! empty( $auth_plan_expires ) ) {
+            $diff      = strtotime( $auth_plan_expires ) - time();
+            $days_left = (int) ceil( $diff / DAY_IN_SECONDS );
+            $is_expired = $diff <= 0;
+        }
         ?>
         <style>
         .wl-wrap { max-width: 680px; }
@@ -301,6 +310,26 @@ $status       = WOOLENS_Rate_Limiter::status( $uid );
                             <p style="color:#1d7e2f;font-weight:500;font-size:13px;margin:0 0 10px">
                                 Pro plan active — unlimited generations, all languages enabled.
                             </p>
+
+                            <?php
+                            // Expiry warning banner
+                            $renew_url = esc_url( rtrim( $server_url, '/' ) . '/buy-pro' );
+                            if ( $is_expired ): ?>
+                                <div style="background:#fcf0f1;border:1px solid #d63638;border-radius:4px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                                    <span style="font-size:13px;font-weight:600;color:#d63638;">Your Pro plan has expired. You are now on the Free plan.</span>
+                                    <a href="<?php echo $renew_url; ?>" target="_blank" class="button button-primary" style="background:#d63638;border-color:#d63638;flex-shrink:0;">Renew Pro</a>
+                                </div>
+                            <?php elseif ( $days_left !== null && $days_left <= 3 ):
+                                $warn_color = $days_left <= 1 ? '#d63638' : ( $days_left == 2 ? '#b45309' : '#996800' );
+                                $warn_bg    = $days_left <= 1 ? '#fcf0f1' : '#fffbeb';
+                                $warn_border= $days_left <= 1 ? '#d63638' : '#f0c33c';
+                                $days_text  = $days_left <= 0 ? 'today' : ( $days_left == 1 ? 'tomorrow' : 'in ' . $days_left . ' days' );
+                            ?>
+                                <div style="background:<?php echo $warn_bg; ?>;border:1px solid <?php echo $warn_border; ?>;border-radius:4px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                                    <span style="font-size:13px;font-weight:600;color:<?php echo $warn_color; ?>;">Your Pro plan expires <?php echo $days_text; ?>!</span>
+                                    <a href="<?php echo $renew_url; ?>" target="_blank" class="button button-primary" style="flex-shrink:0;">Renew Pro</a>
+                                </div>
+                            <?php endif; ?>
                             <table style="border-collapse:collapse;font-size:12px;margin-bottom:12px">
                                 <?php if ( $auth_plan_label ): ?>
                                 <tr>
