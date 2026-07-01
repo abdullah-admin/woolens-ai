@@ -19,7 +19,7 @@ define( 'WOOLENS_BASENAME', plugin_basename( __FILE__ ) );
 
 /* ── Vision model (single model for all plans) ────────────────────── */
 define( 'WOOLENS_FREE_MODEL',  'gemini-3.1-flash-lite' );
-define( 'WOOLENS_SERVER_URL',  'https://woolensai.site' );
+define( 'WOOLENS_SERVER_URL',  'https://www.woolensai.site' );
 
 /* ── Auto-load ────────────────────────────────────────────────────── */
 require_once WOOLENS_DIR . 'includes/class-rate-limiter.php';
