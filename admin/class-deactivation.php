@@ -152,16 +152,19 @@ class WOOLENS_Deactivation {
     public static function ajax_feedback(): void {
         check_ajax_referer( 'woolens_deact_nonce', 'nonce' );
 
-        $reason  = sanitize_text_field( $_POST['reason']  ?? '' );
-        $details = sanitize_text_field( $_POST['details'] ?? '' );
-        $site    = home_url();
-        $version = WOOLENS_VERSION;
+        $reason     = sanitize_text_field( $_POST['reason']  ?? '' );
+        $details    = sanitize_text_field( $_POST['details'] ?? '' );
+        $site       = home_url();
+        $version    = WOOLENS_VERSION;
+        $user       = wp_get_current_user();
+        $user_name  = $user->display_name ?? '';
+        $user_email = $user->user_email   ?? '';
 
         wp_remote_post( rtrim( WOOLENS_SERVER_URL, '/' ) . '/api/plugin/feedback', [
             'timeout'  => 5,
             'blocking' => false,
             'headers'  => [ 'Content-Type' => 'application/json' ],
-            'body'     => wp_json_encode( compact( 'reason', 'details', 'site', 'version' ) ),
+            'body'     => wp_json_encode( compact( 'reason', 'details', 'site', 'version', 'user_name', 'user_email' ) ),
         ] );
 
         wp_send_json_success();

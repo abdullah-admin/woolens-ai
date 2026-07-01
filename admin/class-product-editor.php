@@ -218,7 +218,7 @@ class WOOLENS_Product_Editor {
             var model    = <?php echo json_encode( esc_js( WOOLENS_FREE_MODEL ) ); ?>;
             var hasSeo    = <?php echo $has_seo ? 'true' : 'false'; ?>;
             var hasYoast  = <?php echo $has_yoast ? 'true' : 'false'; ?>;
-            var currency  = <?php echo wp_json_encode( get_woocommerce_currency_symbol() ); ?>;
+            var currency  = <?php echo wp_json_encode( html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ) ); ?>;
             var lastGenData = null;
 
             var statusHtml =
@@ -320,8 +320,6 @@ class WOOLENS_Product_Editor {
                 tmp2.innerHTML = body;
                 body = tmp2.textContent || tmp2.innerText || body;
 
-                var tags = data.tags ? data.tags.split(',').map(function(t){ return t.trim(); }).filter(Boolean) : [];
-
                 var text = '*' + title + '*\n\n' + body;
 
                 if (inclPrice) {
@@ -332,10 +330,6 @@ class WOOLENS_Product_Editor {
                     } else if (regPrice && parseFloat(regPrice) > 0) {
                         text += '\n\nPrice: ' + currency + regPrice;
                     }
-                }
-
-                if (tags.length > 0) {
-                    text += '\n\n' + tags.map(function(t){ return '#' + t.replace(/\s+/g,''); }).join(' ');
                 }
 
                 return text;
