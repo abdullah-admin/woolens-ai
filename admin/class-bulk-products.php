@@ -326,6 +326,14 @@ class WOOLENS_Bulk_Products {
 
             addBtn.addEventListener('click', addRow);
 
+            window.addEventListener('beforeunload', function (e) {
+                var pending = rows.filter(function (r) { return !r.done && r.file; });
+                if (pending.length > 0) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+
             var wantTags = true, wantSeo = false;
             var popup    = document.getElementById('wlbp-popup-backdrop');
 
