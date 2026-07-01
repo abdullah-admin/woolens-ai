@@ -2,7 +2,38 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:www.elevatepay.co)",
-      "Bash(xargs grep -l \"generate\\\\|limit\\\\|daily\")"
+      "Bash(xargs grep -l \"generate\\\\|limit\\\\|daily\")",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(cd \"c:\\\\Users\\\\ali\\\\Downloads\\\\woolens-ai \\(10\\)\\\\woolens-admin\" && pwd)",
+      "Read(//c/Users/ali/Downloads/woolens-ai \\(10\\)/woolens-admin/**)",
+      "Bash(Get-ChildItem -Recurse -Force)",
+      "Bash(Select-Object -Property FullName)",
+      "Bash(ConvertTo-Csv -NoTypeInformation)",
+      "Bash(gh release *)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\ali\\\\Downloads\\\\woolens-ai \\(10\\)\\\\woolens-ai\" -Recurse -Force)",
+      "Bash(Select-Object FullName)",
+      "Bash(Sort-Object FullName)",
+      "Bash(find \"c:/Users/ali/Downloads/woolens-ai \\(10\\)/woolens-ai\" -type f ! -path '*/\\\\.git/*' | sort)",
+      "Read(//c/Users/ali/Downloads/woolens-ai \\(10\\)/woolens-ai/*/.git/**)",
+      "Bash(grep -rn \"Email ya password\\\\|galat hai\\\\|Roman\" \"c:\\\\Users\\\\ali\\\\Downloads\\\\woolens-ai \\(10\\)\\\\woolens-admin\\\\app\" --include=\"*.js\")",
+      "Read(//c/Users/ali/Downloads/woolens-ai \\(10\\)/woolens-admin/app/**)",
+      "Bash(grep -n \"showPw ? <EyeOff\\\\|showPw ? <Eye\" \"c:\\\\Users\\\\ali\\\\Downloads\\\\woolens-ai \\(10\\)\\\\woolens-admin\\\\app\\\\signup\\\\page.js\" \"c:\\\\Users\\\\ali\\\\Downloads\\\\woolens-ai \\(10\\)\\\\woolens-admin\\\\app\\\\login\\\\page.js\" \"c:\\\\Users\\\\ali\\\\Downloads\\\\woolens-ai \\(10\\)\\\\woolens-admin\\\\app\\\\reset-password\\\\page.js\")",
+      "Read(//c/Users/ali/Downloads/woolens-ai \\(10\\)/woolens-admin/app/login/**)",
+      "Bash(mkdir \"c:\\\\Users\\\\ali\\\\Downloads\\\\woolens-ai \\(10\\)\\\\woolens-admin\\\\app\\\\api\\\\admin\\\\notifications\" 2>/dev/null; echo done)",
+      "Bash(grep -n \"isAdmin\\\\|export\" \"c:\\\\Users\\\\ali\\\\Downloads\\\\woolens-ai \\(10\\)\\\\woolens-admin\\\\lib\\\\auth.js\")",
+      "Read(//c/Users/ali/Downloads/woolens-ai \\(10\\)/woolens-admin/lib/**)",
+      "Bash(npm install *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git tag *)",
+      "Bash(gh release create v1.4.0 --title 'WooLens AI v1.4.0' --notes ' *)",
+      "WebFetch(domain:woolensai.site)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\ali\\Downloads\\woolens-ai (10)\\woolens-admin\\app\\api\\admin"
     ]
   }
 }

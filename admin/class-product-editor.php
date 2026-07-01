@@ -182,6 +182,13 @@ class WOOLENS_Product_Editor {
                             </small>
                         </label>
                     </div>
+                    <div class="wl-popup-item">
+                        <input type="checkbox" id="wl-chk-wa" checked>
+                        <label for="wl-chk-wa">
+                            WhatsApp Message <span class="wl-popup-pro-badge">PRO</span>
+                            <small>Ready-to-send message with title, description &amp; price</small>
+                        </label>
+                    </div>
                     <?php endif; ?>
                 </div>
                 <div id="wl-popup-foot">
@@ -209,8 +216,10 @@ class WOOLENS_Product_Editor {
             var pct      = <?php echo (int) $pct; ?>;
             var barColor = <?php echo json_encode( $bar_color ); ?>;
             var model    = <?php echo json_encode( esc_js( WOOLENS_FREE_MODEL ) ); ?>;
-            var hasSeo   = <?php echo $has_seo ? 'true' : 'false'; ?>;
-            var hasYoast = <?php echo $has_yoast ? 'true' : 'false'; ?>;
+            var hasSeo    = <?php echo $has_seo ? 'true' : 'false'; ?>;
+            var hasYoast  = <?php echo $has_yoast ? 'true' : 'false'; ?>;
+            var currency  = <?php echo wp_json_encode( get_woocommerce_currency_symbol() ); ?>;
+            var lastGenData = null;
 
             var statusHtml =
                 '<div class="wl-status">' +
@@ -229,7 +238,7 @@ class WOOLENS_Product_Editor {
             var waArea = isPro ?
                 '<div id="wl-wa-area">' +
                 '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">' +
-                '<span style="font-size:12px;font-weight:600;color:#1d2327;">WhatsApp Format</span>' +
+                '<span style="font-size:12px;font-weight:600;color:#1d2327;">WhatsApp Message</span>' +
                 '</div>' +
                 '<div id="wl-wa-actions">' +
                 '<label class="wl-wa-check"><input type="checkbox" id="wl-wa-price" checked> Include price</label>' +
@@ -319,9 +328,9 @@ class WOOLENS_Product_Editor {
                     var regPrice  = jQuery('#_regular_price').val();
                     var salePrice = jQuery('#_sale_price').val();
                     if (salePrice && parseFloat(salePrice) > 0) {
-                        text += '\n\nPrice: ' + salePrice + ' (was ' + regPrice + ')';
+                        text += '\n\nPrice: ' + currency + salePrice + ' (was ' + currency + regPrice + ')';
                     } else if (regPrice && parseFloat(regPrice) > 0) {
-                        text += '\n\nPrice: ' + regPrice;
+                        text += '\n\nPrice: ' + currency + regPrice;
                     }
                 }
 
@@ -341,8 +350,9 @@ class WOOLENS_Product_Editor {
                 var wantShort = $('#wl-chk-short').is(':checked');
                 var wantTags  = $('#wl-chk-tags').is(':checked');
                 var wantSeo   = $('#wl-chk-seo').is(':checked');
+                var wantWa    = $('#wl-chk-wa').is(':checked');
 
-                if (!wantTitle && !wantDesc && !wantShort && !wantTags && !wantSeo) {
+                if (!wantTitle && !wantDesc && !wantShort && !wantTags && !wantSeo && !wantWa) {
                     alert('Please select at least one option.');
                     return;
                 }
@@ -405,52 +415,55 @@ class WOOLENS_Product_Editor {
 
                         // Tags
                         if (wantTags && d.tags) {
-                            // WooCommerce tags input (tagsdiv-product_tag)
-                            var $tagInput = $('#new-tag-product_tag');
-                            var $tagList  = $('.tagchecklist[data-wp_taxonomy="product_tag"]');
-                            if ($tagInput.length) {
-                                // Clear existing tags first via the WP tag UI
-                                $('.tagchecklist[data-wp_taxonomy="product_tag"] .ntdelbutton').each(function(){ $(this).click(); });
-                                // Add new tags
-                                var tags = d.tags.split(',');
-                                tags.forEach(function(tag){
-                                    tag = tag.trim();
-                                    if (!tag) return;
-                                    $tagInput.val(tag);
-                                    $('#tagadd-product_tag').click();
-                                });
-                            }
+                            try {
+                                var $tagInput = $('#new-tag-product_tag');
+                                if ($tagInput.length) {
+                                    $('.tagchecklist[data-wp_taxonomy="product_tag"] .ntdelbutton').each(function(){ $(this).click(); });
+                                    var tagList = d.tags.split(',');
+                                    tagList.forEach(function(tag){
+                                        tag = tag.trim();
+                                        if (!tag) return;
+                                        $tagInput.val(tag);
+                                        $('#tagadd-product_tag').click();
+                                    });
+                                }
+                            } catch(e) {}
                         }
 
                         // SEO Meta
                         if (wantSeo && d.seo_title) {
-                            if (hasYoast) {
-                                $('#yoast_wpseo_title').val(d.seo_title).trigger('input');
-                                $('#yoast_wpseo_metadesc').val(d.seo_description).trigger('input');
-                            } else if (window.rankMathEditor) {
-                                // RankMath uses a JS API
-                                wp.data && wp.data.dispatch('rank-math') &&
-                                    wp.data.dispatch('rank-math').updateMeta('title', d.seo_title);
-                                wp.data && wp.data.dispatch('rank-math') &&
-                                    wp.data.dispatch('rank-math').updateMeta('description', d.seo_description);
-                            }
-                            if (!hasSeo) {
-                                // Show copy area if no SEO plugin
-                                note($('#wl-desc-note'),
-                                    'SEO Meta generated! ' +
-                                    '<strong>SEO Title:</strong> ' + d.seo_title + '<br>' +
-                                    '<strong>SEO Desc:</strong> ' + d.seo_description +
-                                    '<br><small>Install Yoast or RankMath to auto-save these.</small>',
-                                    'success'
-                                );
-                            }
+                            try {
+                                if (hasYoast) {
+                                    $('#yoast_wpseo_title').val(d.seo_title).trigger('input');
+                                    $('#yoast_wpseo_metadesc').val(d.seo_description).trigger('input');
+                                } else if (window.rankMathEditor) {
+                                    wp.data && wp.data.dispatch('rank-math') &&
+                                        wp.data.dispatch('rank-math').updateMeta('title', d.seo_title);
+                                    wp.data && wp.data.dispatch('rank-math') &&
+                                        wp.data.dispatch('rank-math').updateMeta('description', d.seo_description);
+                                }
+                                if (!hasSeo) {
+                                    note($('#wl-desc-note'),
+                                        'SEO Meta generated! ' +
+                                        '<strong>SEO Title:</strong> ' + d.seo_title + '<br>' +
+                                        '<strong>SEO Desc:</strong> ' + d.seo_description +
+                                        '<br><small>Install Yoast or RankMath to auto-save these.</small>',
+                                        'success'
+                                    );
+                                }
+                            } catch(e) {}
                         }
 
-                        // WhatsApp area
-                        if (isPro) {
-                            var waText = buildWhatsApp(d);
-                            $('#wl-wa-text').val(waText);
-                            $('#wl-wa-area').show();
+                        // WhatsApp Message area
+                        if (isPro && wantWa) {
+                            lastGenData = d;
+                            setTimeout(function(){
+                                try {
+                                    var waText = buildWhatsApp(d);
+                                    $('#wl-wa-text').val(waText);
+                                } catch(e) {}
+                                $('#wl-wa-area').show();
+                            }, 0);
                         }
 
                         // Update usage
@@ -484,18 +497,14 @@ class WOOLENS_Product_Editor {
                     })();
                 });
 
-                $(document).on('change', '#wl-wa-price', function(){
-                    var current = $('#wl-wa-text').val();
-                    if (!current) return;
-                    // Rebuild with current data
-                    var fakeData = {
-                        short_description: $('#excerpt').val() || '',
-                        description: (typeof tinyMCE !== 'undefined' && tinyMCE.get('content'))
-                            ? tinyMCE.get('content').getContent() : $('#content').val(),
-                        tags: $('#tax-input-product_tag').val() || '',
-                    };
-                    $('#wl-wa-text').val(buildWhatsApp(fakeData));
-                });
+                function rebuildWhatsApp() {
+                    if (!lastGenData || !$('#wl-wa-area').is(':visible')) return;
+                    $('#wl-wa-text').val(buildWhatsApp(lastGenData));
+                }
+
+                $(document).on('change', '#wl-wa-price', rebuildWhatsApp);
+
+                $(document).on('input change', '#_regular_price, #_sale_price', rebuildWhatsApp);
             }
 
         });
