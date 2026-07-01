@@ -8,6 +8,10 @@ class WOOLENS_AI_Client {
         'description' => 1200,
         'both'        => 1000,  // free — plain paragraph
         'both_pro'    => 1800,  // pro — HTML with bullets
+        'both_tags'       => 1100, // free + tags
+        'both_pro_tags'   => 1900, // pro + tags
+        'both_seo'        => 1300, // free + seo
+        'both_pro_seo'    => 2100, // pro + tags + seo
     ];
 
     const PROMPTS = [
@@ -15,11 +19,36 @@ class WOOLENS_AI_Client {
         'description' => 'Analyze this product image. Write a product description between 80 and 120 words, and a short description of 1-2 sentences under 150 characters. Language: %s. Tone: %s. Respond with ONLY raw JSON: {"title":"","description":"Your full product description here.","short_description":"Brief 1-2 sentence summary."}',
 
         // Free: clean SEO paragraph
-        'both'        => 'Analyze this product image. Write: (1) a product title under 60 characters, (2) a short catchy tagline under 10 words that captures the product\'s main appeal, (3) a single SEO-friendly paragraph of 80 to 120 words with natural keyword placement — no bullet points or HTML, (4) a short description of 1-2 sentences under 150 characters. Language: %s. Tone: %s. Respond with ONLY raw JSON: {"title":"Your Product Title","tagline":"Short catchy heading","description":"Your SEO paragraph here.","short_description":"Brief 1-2 sentence summary."}',
+        'both'        => 'Analyze this product image. Write: (1) a product title under 60 characters, (2) a short catchy tagline under 10 words that captures the product\'s main appeal, (3) a single SEO-friendly paragraph of 80 to 120 words with natural keyword placement — no bullet points or HTML, (4) a short description of 1-2 sentences under 150 characters. Language: %s. Tone: %s. Respond with ONLY raw JSON: {"title":"Your Product Title","tagline":"Short catchy heading","description":"Your SEO paragraph here.","short_description":"Brief 1-2 sentence summary.","tags":"","seo_title":"","seo_description":""}',
+
+        // Free + tags
+        'both_tags'   => 'Analyze this product image. Write: (1) a product title under 60 characters, (2) a short catchy tagline under 10 words, (3) a single SEO-friendly paragraph of 80 to 120 words — no bullet points or HTML, (4) a short description of 1-2 sentences under 150 characters, (5) 5 to 8 relevant product tags as a comma-separated list. Language: %s. Tone: %s. Respond with ONLY raw JSON: {"title":"Your Product Title","tagline":"Short catchy heading","description":"Your SEO paragraph here.","short_description":"Brief 1-2 sentence summary.","tags":"tag1, tag2, tag3","seo_title":"","seo_description":""}',
 
         // Pro: structured HTML — intro + bullets + summary
-        'both_pro'    => 'Analyze this product image. Write: (1) a product title under 60 characters, (2) a short catchy tagline under 10 words that captures the product\'s main appeal, (3) a structured HTML description with three parts: an opening SEO paragraph (2-3 sentences, include main product keywords naturally) inside <p> tags, then a <ul> list of 4 to 5 key product features each as <li><strong>Feature Label:</strong> feature detail</li>, then a closing summary sentence inside a <p> tag (do NOT write a call-to-action like "order now"), (4) a short description of 1-2 sentences under 150 characters. Language: %s. Tone: %s. Respond with ONLY raw JSON: {"title":"Your Product Title","tagline":"Short catchy heading","description":"<p>Intro paragraph.</p><ul><li><strong>Label:</strong> detail</li></ul><p>Summary sentence.</p>","short_description":"Brief 1-2 sentence summary."}',
+        'both_pro'    => 'Analyze this product image. Write: (1) a product title under 60 characters, (2) a short catchy tagline under 10 words that captures the product\'s main appeal, (3) a structured HTML description with three parts: an opening SEO paragraph (2-3 sentences, include main product keywords naturally) inside <p> tags, then a <ul> list of 4 to 5 key product features each as <li><strong>Feature Label:</strong> feature detail</li>, then a closing summary sentence inside a <p> tag (do NOT write a call-to-action like "order now"), (4) a short description of 1-2 sentences under 150 characters. Language: %s. Tone: %s. Respond with ONLY raw JSON: {"title":"Your Product Title","tagline":"Short catchy heading","description":"<p>Intro paragraph.</p><ul><li><strong>Label:</strong> detail</li></ul><p>Summary sentence.</p>","short_description":"Brief 1-2 sentence summary.","tags":"","seo_title":"","seo_description":""}',
+
+        // Pro + tags
+        'both_pro_tags' => 'Analyze this product image. Write: (1) a product title under 60 characters, (2) a short catchy tagline under 10 words, (3) a structured HTML description: opening <p> paragraph (2-3 sentences with keywords), then <ul> list of 4-5 features as <li><strong>Label:</strong> detail</li>, then closing <p> summary, (4) a short description of 1-2 sentences under 150 characters, (5) 5 to 8 relevant product tags as a comma-separated list. Language: %s. Tone: %s. Respond with ONLY raw JSON: {"title":"Your Product Title","tagline":"Short catchy heading","description":"<p>Intro.</p><ul><li><strong>Label:</strong> detail</li></ul><p>Summary.</p>","short_description":"Brief summary.","tags":"tag1, tag2, tag3","seo_title":"","seo_description":""}',
+
+        // Pro + tags + SEO
+        'both_pro_seo' => 'Analyze this product image. Write: (1) a product title under 60 characters, (2) a short catchy tagline under 10 words, (3) a structured HTML description: opening <p> paragraph (2-3 sentences with keywords), then <ul> list of 4-5 features as <li><strong>Label:</strong> detail</li>, then closing <p> summary, (4) a short description of 1-2 sentences under 150 characters, (5) 5 to 8 relevant product tags as comma-separated list, (6) an SEO meta title under 60 characters optimized for search engines, (7) an SEO meta description between 120 and 155 characters. Language: %s. Tone: %s. Respond with ONLY raw JSON: {"title":"Your Product Title","tagline":"Short catchy heading","description":"<p>Intro.</p><ul><li><strong>Label:</strong> detail</li></ul><p>Summary.</p>","short_description":"Brief summary.","tags":"tag1, tag2, tag3","seo_title":"SEO Title Here","seo_description":"SEO meta description here between 120-155 chars."}',
+
+        // Free + SEO (no tags)
+        'both_seo'    => 'Analyze this product image. Write: (1) a product title under 60 characters, (2) a short catchy tagline under 10 words, (3) a single SEO-friendly paragraph of 80 to 120 words — no bullet points or HTML, (4) a short description of 1-2 sentences under 150 characters, (5) an SEO meta title under 60 characters, (6) an SEO meta description between 120 and 155 characters. Language: %s. Tone: %s. Respond with ONLY raw JSON: {"title":"Your Product Title","tagline":"Short catchy heading","description":"SEO paragraph here.","short_description":"Brief summary.","tags":"","seo_title":"SEO Title Here","seo_description":"SEO meta description here."}',
     ];
+
+    private static function resolve_prompt_key( string $mode, bool $is_pro, bool $want_tags, bool $want_seo ): string {
+        if ( $mode !== 'both' ) return $mode;
+        if ( $is_pro ) {
+            if ( $want_tags && $want_seo ) return 'both_pro_seo';
+            if ( $want_tags )             return 'both_pro_tags';
+            return 'both_pro';
+        }
+        if ( $want_tags && $want_seo ) return 'both_seo'; // free can get seo but plain desc
+        if ( $want_tags )              return 'both_tags';
+        if ( $want_seo )               return 'both_seo';
+        return 'both';
+    }
 
     public static function generate_from_base64(
         string $api_key,
@@ -29,10 +58,12 @@ class WOOLENS_AI_Client {
         string $mode = 'both',
         array  $opts = []
     ) {
-        $language   = sanitize_text_field( $opts['language'] ?? 'English' );
-        $tone       = sanitize_text_field( $opts['tone']     ?? 'Professional' );
-        $is_pro     = (bool) ( $opts['is_pro'] ?? false );
-        $prompt_key = ( $mode === 'both' && $is_pro ) ? 'both_pro' : $mode;
+        $language   = sanitize_text_field( $opts['language']   ?? 'English' );
+        $tone       = sanitize_text_field( $opts['tone']       ?? 'Professional' );
+        $is_pro     = (bool) ( $opts['is_pro']     ?? false );
+        $want_tags  = (bool) ( $opts['want_tags']  ?? false );
+        $want_seo   = (bool) ( $opts['want_seo']   ?? false );
+        $prompt_key = self::resolve_prompt_key( $mode, $is_pro, $want_tags, $want_seo );
         $prompt     = sprintf( self::PROMPTS[ $prompt_key ] ?? self::PROMPTS['both'], $language, $tone );
         $tokens     = self::TOKENS[ $prompt_key ] ?? 1000;
 
@@ -46,12 +77,13 @@ class WOOLENS_AI_Client {
         string $mode = 'both',
         array  $opts = []
     ) {
-        $language = sanitize_text_field( $opts['language'] ?? 'English' );
-        $tone     = sanitize_text_field( $opts['tone']     ?? 'Professional' );
-        $is_pro   = (bool) ( $opts['is_pro'] ?? false );
+        $language  = sanitize_text_field( $opts['language']  ?? 'English' );
+        $tone      = sanitize_text_field( $opts['tone']      ?? 'Professional' );
+        $is_pro    = (bool) ( $opts['is_pro']    ?? false );
+        $want_tags = (bool) ( $opts['want_tags'] ?? false );
+        $want_seo  = (bool) ( $opts['want_seo']  ?? false );
 
-        // Pro gets structured HTML description; free gets plain SEO paragraph
-        $prompt_key = ( $mode === 'both' && $is_pro ) ? 'both_pro' : $mode;
+        $prompt_key = self::resolve_prompt_key( $mode, $is_pro, $want_tags, $want_seo );
         $prompt     = sprintf( self::PROMPTS[ $prompt_key ] ?? self::PROMPTS['both'], $language, $tone );
         $tokens     = self::TOKENS[ $prompt_key ] ?? 1000;
 
@@ -161,16 +193,31 @@ class WOOLENS_AI_Client {
     }
 
     private static function format_result( array $parsed ): array {
-        $title      = sanitize_text_field( $parsed['title']             ?? '' );
-        $tagline    = sanitize_text_field( $parsed['tagline']           ?? '' );
-        $desc       = wp_kses_post(        $parsed['description']       ?? '' );
-        $short_desc = wp_kses_post(        $parsed['short_description'] ?? '' );
+        $title       = sanitize_text_field( $parsed['title']             ?? '' );
+        $tagline     = sanitize_text_field( $parsed['tagline']           ?? '' );
+        $desc        = wp_kses_post(        $parsed['description']       ?? '' );
+        $short_desc  = wp_kses_post(        $parsed['short_description'] ?? '' );
+        $seo_title   = sanitize_text_field( $parsed['seo_title']         ?? '' );
+        $seo_desc    = sanitize_text_field( $parsed['seo_description']   ?? '' );
+
+        // Sanitize tags: comma-separated, each tag sanitized
+        $raw_tags = $parsed['tags'] ?? '';
+        if ( is_array( $raw_tags ) ) {
+            $raw_tags = implode( ', ', $raw_tags );
+        }
+        $tags = implode( ', ', array_filter( array_map(
+            'sanitize_text_field',
+            array_map( 'trim', explode( ',', (string) $raw_tags ) )
+        ) ) );
 
         if ( empty( $title ) && empty( $desc ) ) {
             return array(
                 'title'             => '',
                 'description'       => '',
                 'short_description' => '',
+                'tags'              => '',
+                'seo_title'         => '',
+                'seo_description'   => '',
                 '_debug'            => 'Both fields empty after parse. Keys found: ' . implode( ', ', array_keys( $parsed ) ),
             );
         }
@@ -184,6 +231,9 @@ class WOOLENS_AI_Client {
             'title'             => $title,
             'description'       => $desc,
             'short_description' => $short_desc,
+            'tags'              => $tags,
+            'seo_title'         => $seo_title,
+            'seo_description'   => $seo_desc,
         );
     }
 

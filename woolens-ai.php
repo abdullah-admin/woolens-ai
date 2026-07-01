@@ -3,7 +3,7 @@
  * Plugin Name:       WooLens AI
  * Plugin URI:        https://woolensai.site
  * Description:       WooLens AI analyzes your WooCommerce product image and automatically writes the title and description for you. No typing. No ChatGPT tabs. Just click and done.
- * Version:           1.3.2
+ * Version:           1.4.0
  * Author:            WooLens AI
  * License:           GPL-2.0+
  * Text Domain:       woolens-ai
@@ -12,7 +12,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WOOLENS_VERSION',  '1.3.2' );
+define( 'WOOLENS_VERSION',  '1.4.0' );
 define( 'WOOLENS_DIR',      plugin_dir_path( __FILE__ ) );
 define( 'WOOLENS_URL',      plugin_dir_url( __FILE__ ) );
 define( 'WOOLENS_BASENAME', plugin_basename( __FILE__ ) );
@@ -29,6 +29,7 @@ require_once WOOLENS_DIR . 'admin/class-settings-page.php';
 require_once WOOLENS_DIR . 'admin/class-product-editor.php';
 require_once WOOLENS_DIR . 'admin/class-bulk-generator.php';
 require_once WOOLENS_DIR . 'admin/class-bulk-products.php';
+require_once WOOLENS_DIR . 'admin/class-deactivation.php';
 
 /* ── Boot ─────────────────────────────────────────────────────────── */
 add_action( 'plugins_loaded', function () {
@@ -45,6 +46,7 @@ add_action( 'plugins_loaded', function () {
     WOOLENS_Bulk_Generator::init();
     WOOLENS_Bulk_Products::init();
     WOOLENS_Updater::init();
+    WOOLENS_Deactivation::init();
 } );
 
 /* ── Activation ───────────────────────────────────────────────────── */

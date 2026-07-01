@@ -140,10 +140,57 @@ class WOOLENS_Bulk_Generator {
             <a href="<?php echo esc_url($products_url); ?>" class="button">Back to Products</a>
         <?php else: ?>
 
+        <!-- Bulk options popup -->
+        <div id="wlb-popup-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999999;align-items:center;justify-content:center;">
+            <div style="background:#fff;border-radius:6px;width:380px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.18);overflow:hidden;">
+                <div style="background:#f6f7f7;border-bottom:1px solid #c3c4c7;padding:12px 16px;font-size:14px;font-weight:600;color:#1d2327;display:flex;align-items:center;justify-content:space-between;">
+                    <span>What do you want to generate?</span>
+                    <button type="button" id="wlb-popup-close" style="background:none;border:none;cursor:pointer;font-size:18px;color:#646970;line-height:1;padding:0;">&times;</button>
+                </div>
+                <div style="padding:16px;">
+                    <p style="font-size:12px;color:#646970;margin:0 0 12px;">Will apply to all <strong><?php echo $total; ?></strong> products.</p>
+                    <?php
+                    $has_yoast    = defined( 'WPSEO_VERSION' );
+                    $has_rankmath = defined( 'RANK_MATH_VERSION' );
+                    $has_seo      = $has_yoast || $has_rankmath;
+                    ?>
+                    <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f0f1;">
+                        <input type="checkbox" id="wlb-chk-title" checked style="margin-top:2px;width:15px;height:15px;flex-shrink:0;">
+                        <label for="wlb-chk-title" style="font-size:13px;color:#1d2327;cursor:pointer;">Title</label>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f0f1;">
+                        <input type="checkbox" id="wlb-chk-desc" checked style="margin-top:2px;width:15px;height:15px;flex-shrink:0;">
+                        <label for="wlb-chk-desc" style="font-size:13px;color:#1d2327;cursor:pointer;">Description</label>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f0f1;">
+                        <input type="checkbox" id="wlb-chk-short" checked style="margin-top:2px;width:15px;height:15px;flex-shrink:0;">
+                        <label for="wlb-chk-short" style="font-size:13px;color:#1d2327;cursor:pointer;">Short Description</label>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid #f0f0f1;">
+                        <input type="checkbox" id="wlb-chk-tags" checked style="margin-top:2px;width:15px;height:15px;flex-shrink:0;">
+                        <label for="wlb-chk-tags" style="font-size:13px;color:#1d2327;cursor:pointer;">Tags</label>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;">
+                        <input type="checkbox" id="wlb-chk-seo" <?php echo $has_seo ? 'checked' : ''; ?> style="margin-top:2px;width:15px;height:15px;flex-shrink:0;">
+                        <label for="wlb-chk-seo" style="font-size:13px;color:#1d2327;cursor:pointer;">
+                            SEO Meta <span style="background:#fff8e5;color:#996800;font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;border:1px solid #f0c33c;margin-left:4px;">PRO</span>
+                            <?php if ( ! $has_seo ): ?>
+                            <span style="display:block;font-size:11px;color:#646970;margin-top:2px;">Install Yoast or RankMath to auto-save</span>
+                            <?php endif; ?>
+                        </label>
+                    </div>
+                </div>
+                <div style="padding:12px 16px;border-top:1px solid #c3c4c7;display:flex;gap:8px;justify-content:flex-end;">
+                    <button type="button" id="wlb-popup-cancel" class="button">Cancel</button>
+                    <button type="button" id="wlb-popup-confirm" class="button button-primary">Start Generating</button>
+                </div>
+            </div>
+        </div>
+
         <div class="wl-bulk-wrap">
             <p class="description" style="margin-bottom:16px">
                 <strong><?php echo $total; ?></strong> product<?php echo $total !== 1 ? 's' : ''; ?> selected.
-                WooLens AI will process them one by one and save titles and descriptions automatically.
+                WooLens AI will process them one by one and save the selected fields automatically.
             </p>
 
             <!-- Start / Cancel -->
@@ -209,6 +256,41 @@ class WOOLENS_Bulk_Generator {
             var BULK_KEY  = <?php echo wp_json_encode( $bulk_key ); ?>;
             var DELAY     = <?php echo (int) self::DELAY_MS; ?>;
 
+            // User-selected options from popup
+            var wantTags = true;
+            var wantSeo  = <?php echo $has_seo ? 'true' : 'false'; ?>;
+
+            // Popup
+            $('#wl-bulk-start').on('click', function(){
+                if (running) return;
+                $('#wlb-popup-backdrop').css('display','flex');
+            });
+
+            $('#wlb-popup-close, #wlb-popup-cancel').on('click', function(){
+                $('#wlb-popup-backdrop').css('display','none');
+            });
+
+            $('#wlb-popup-backdrop').on('click', function(e){
+                if ($(e.target).is('#wlb-popup-backdrop')) $(this).css('display','none');
+            });
+
+            $('#wlb-popup-confirm').on('click', function(){
+                wantTags = $('#wlb-chk-tags').is(':checked');
+                wantSeo  = $('#wlb-chk-seo').is(':checked');
+                $('#wlb-popup-backdrop').css('display','none');
+                startBulk();
+            });
+
+            function startBulk() {
+                if (running) return;
+                running = true;
+                $('#wl-bulk-start').prop('disabled', true).text('Generating…');
+                $('#wl-bulk-progress').show();
+                $('#wl-bulk-done').hide();
+                updateBar();
+                processProduct(0);
+            }
+
             function setStatus(id, text, cls) {
                 $('#wl-status-' + id)
                     .removeClass('wl-st-pending wl-st-running wl-st-done wl-st-error')
@@ -251,6 +333,8 @@ class WOOLENS_Bulk_Generator {
                         nonce:      NONCE,
                         bulk_key:   BULK_KEY,
                         product_id: p.id,
+                        want_tags:  wantTags ? 1 : 0,
+                        want_seo:   wantSeo  ? 1 : 0,
                     },
                     success: function(res) {
                         done++;
@@ -286,16 +370,6 @@ class WOOLENS_Bulk_Generator {
                     }
                 });
             }
-
-            $('#wl-bulk-start').on('click', function(){
-                if (running) return;
-                running = true;
-                $(this).prop('disabled', true).text('Generating…');
-                $('#wl-bulk-progress').show();
-                $('#wl-bulk-done').hide();
-                updateBar();
-                processProduct(0);
-            });
 
         })(jQuery);
         </script>
@@ -365,16 +439,21 @@ class WOOLENS_Bulk_Generator {
             wp_send_json_error( [ 'message' => 'No image — skipped.' ], 400 );
         }
 
-        // Call Gemini — bulk is always Pro, so always use pro structured format
+        $want_tags = ! empty( $_POST['want_tags'] );
+        $want_seo  = ! empty( $_POST['want_seo'] );
+
+        // Call Gemini
         $result = WOOLENS_AI_Client::generate(
             $api_key,
             $model,
             $image_url,
             'both',
             [
-                'language' => WOOLENS_Settings_Page::get( 'woolens_language', 'English' ),
-                'tone'     => WOOLENS_Settings_Page::get( 'woolens_tone', 'Professional' ),
-                'is_pro'   => true,
+                'language'  => WOOLENS_Settings_Page::get( 'woolens_language', 'English' ),
+                'tone'      => WOOLENS_Settings_Page::get( 'woolens_tone', 'Professional' ),
+                'is_pro'    => true,
+                'want_tags' => $want_tags,
+                'want_seo'  => $want_seo,
             ]
         );
 
@@ -384,15 +463,9 @@ class WOOLENS_Bulk_Generator {
 
         // Build update array — only include non-empty fields
         $update = [ 'ID' => $product_id ];
-        if ( ! empty( $result['title'] ) ) {
-            $update['post_title'] = sanitize_text_field( $result['title'] );
-        }
-        if ( ! empty( $result['description'] ) ) {
-            $update['post_content'] = wp_kses_post( $result['description'] );
-        }
-        if ( ! empty( $result['short_description'] ) ) {
-            $update['post_excerpt'] = wp_kses_post( $result['short_description'] );
-        }
+        if ( ! empty( $result['title'] ) )             $update['post_title']   = sanitize_text_field( $result['title'] );
+        if ( ! empty( $result['description'] ) )       $update['post_content'] = wp_kses_post( $result['description'] );
+        if ( ! empty( $result['short_description'] ) ) $update['post_excerpt'] = wp_kses_post( $result['short_description'] );
 
         $saved = wp_update_post( $update, true );
         if ( is_wp_error( $saved ) ) {
@@ -417,6 +490,25 @@ class WOOLENS_Bulk_Generator {
         if ( function_exists( 'w3tc_flush_post' ) )                   w3tc_flush_post( $product_id );
         if ( function_exists( 'wp_cache_post_edit' ) )                wp_cache_post_edit( $product_id );
         if ( function_exists( 'wpfc_clear_post_cache_by_post_id' ) )  wpfc_clear_post_cache_by_post_id( $product_id );
+
+        // Save tags
+        if ( $want_tags && ! empty( $result['tags'] ) ) {
+            $tags = array_filter( array_map( 'trim', explode( ',', $result['tags'] ) ) );
+            wp_set_post_terms( $product_id, $tags, 'product_tag', false );
+        }
+
+        // Save SEO meta
+        if ( $want_seo && ! empty( $result['seo_title'] ) ) {
+            if ( defined( 'WPSEO_VERSION' ) ) {
+                update_post_meta( $product_id, '_yoast_wpseo_title',    sanitize_text_field( $result['seo_title'] ) );
+                update_post_meta( $product_id, '_yoast_wpseo_metadesc', sanitize_text_field( $result['seo_description'] ?? '' ) );
+            } elseif ( defined( 'RANK_MATH_VERSION' ) ) {
+                update_post_meta( $product_id, 'rank_math_title',       sanitize_text_field( $result['seo_title'] ) );
+                update_post_meta( $product_id, 'rank_math_description',  sanitize_text_field( $result['seo_description'] ?? '' ) );
+            }
+            update_post_meta( $product_id, '_woolens_seo_title', sanitize_text_field( $result['seo_title'] ) );
+            update_post_meta( $product_id, '_woolens_seo_desc',  sanitize_text_field( $result['seo_description'] ?? '' ) );
+        }
 
         // Increment usage after successful save
         $new_count = WOOLENS_Rate_Limiter::increment( $uid );
