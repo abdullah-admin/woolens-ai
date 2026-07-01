@@ -195,6 +195,13 @@ class WOOLENS_Bulk_Products {
                             </small>
                         </label>
                     </div>
+                    <div class="wl-popup-item">
+                        <input type="checkbox" id="wlbp-chk-wa" checked>
+                        <label for="wlbp-chk-wa">
+                            WhatsApp Message <span class="wl-popup-pro-badge">PRO</span>
+                            <small>Saved to product — open product to copy</small>
+                        </label>
+                    </div>
                 </div>
                 <div style="padding:12px 16px;border-top:1px solid #c3c4c7;display:flex;gap:8px;justify-content:flex-end;">
                     <button type="button" id="wlbp-popup-cancel" class="button">Cancel</button>
@@ -333,9 +340,11 @@ class WOOLENS_Bulk_Products {
             document.getElementById('wlbp-popup-cancel').addEventListener('click', function () { popup.style.display = 'none'; });
             popup.addEventListener('click', function (e) { if (e.target === popup) popup.style.display = 'none'; });
 
+            var wantWa = true;
             document.getElementById('wlbp-popup-start').addEventListener('click', function () {
                 wantTags = document.getElementById('wlbp-chk-tags').checked;
                 wantSeo  = document.getElementById('wlbp-chk-seo').checked;
+                wantWa   = document.getElementById('wlbp-chk-wa').checked;
                 popup.style.display = 'none';
 
                 if (running) return;
@@ -377,6 +386,9 @@ class WOOLENS_Bulk_Products {
                             fd.append('sale_price',    sale);
                             fd.append('want_tags',     wantTags ? '1' : '0');
                             fd.append('want_seo',      wantSeo  ? '1' : '0');
+                            fd.append('want_wa',       wantWa   ? '1' : '0');
+                            fd.append('reg_price_val', reg);
+                            fd.append('sale_price_val', sale);
 
                             return fetch(AJAX_URL, { method: 'POST', body: fd })
                                 .then(function (res) { return res.json(); })
@@ -483,6 +495,7 @@ class WOOLENS_Bulk_Products {
         $tone      = WOOLENS_Settings_Page::get( 'woolens_tone', 'Professional' );
         $want_tags = ! empty( $_POST['want_tags'] ) && $_POST['want_tags'] === '1';
         $want_seo  = ! empty( $_POST['want_seo']  ) && $_POST['want_seo']  === '1';
+        $want_wa   = ! empty( $_POST['want_wa']   ) && $_POST['want_wa']   === '1';
 
         if ( empty( $api_key ) ) {
             wp_send_json_error( 'Gemini API key not configured. Please add it in WooLens AI settings.' );
@@ -562,6 +575,25 @@ class WOOLENS_Bulk_Products {
             }
             update_post_meta( $product_id, '_woolens_seo_title', sanitize_text_field( $result['seo_title'] ) );
             update_post_meta( $product_id, '_woolens_seo_desc',  sanitize_text_field( $result['seo_description'] ?? '' ) );
+        }
+
+        // Save WhatsApp message
+        if ( $want_wa ) {
+            $currency = html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' );
+            $wa_reg   = sanitize_text_field( $_POST['reg_price_val'] ?? $reg_price );
+            $wa_sale  = sanitize_text_field( $_POST['sale_price_val'] ?? $sale_price );
+            $short    = wp_strip_all_tags( $result['short_description'] ?? '' );
+            $desc_txt = wp_strip_all_tags( $result['description'] ?? '' );
+            $body     = $short ?: mb_substr( $desc_txt, 0, 150 );
+            $wa       = '*' . ( $result['title'] ?: 'New Product' ) . '*' . "\n\n" . $body;
+            if ( $wa_reg && is_numeric( $wa_reg ) && floatval( $wa_reg ) > 0 ) {
+                if ( $wa_sale && is_numeric( $wa_sale ) && floatval( $wa_sale ) > 0 ) {
+                    $wa .= "\n\nPrice: {$currency}{$wa_sale} (was {$currency}{$wa_reg})";
+                } else {
+                    $wa .= "\n\nPrice: {$currency}{$wa_reg}";
+                }
+            }
+            update_post_meta( $product_id, '_woolens_wa_message', $wa );
         }
 
         wp_send_json_success( [

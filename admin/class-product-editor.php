@@ -59,6 +59,7 @@ class WOOLENS_Product_Editor {
         $has_yoast    = defined( 'WPSEO_VERSION' );
         $has_rankmath = defined( 'RANK_MATH_VERSION' );
         $has_seo      = $has_yoast || $has_rankmath;
+        $saved_wa     = get_post_meta( $post->ID, '_woolens_wa_message', true );
 
         // Expiry banner
         $expiry_banner = '';
@@ -220,6 +221,7 @@ class WOOLENS_Product_Editor {
             var hasYoast  = <?php echo $has_yoast ? 'true' : 'false'; ?>;
             var currency  = <?php echo wp_json_encode( html_entity_decode( get_woocommerce_currency_symbol(), ENT_QUOTES, 'UTF-8' ) ); ?>;
             var lastGenData = null;
+            var savedWa   = <?php echo wp_json_encode( $saved_wa ?: '' ); ?>;
 
             var statusHtml =
                 '<div class="wl-status">' +
@@ -302,25 +304,28 @@ class WOOLENS_Product_Editor {
 
             /* ── Build WhatsApp text ─────────────────────────────── */
             function buildWhatsApp(data) {
-                var title    = $('#title').val() || '';
-                var shortDesc = data.short_description || '';
-                var desc      = data.description || '';
                 var inclPrice = $('#wl-wa-price').is(':checked');
+                var text;
 
-                // Strip HTML tags from description
-                var tmp = document.createElement('div');
-                tmp.innerHTML = desc;
-                var plainDesc = tmp.textContent || tmp.innerText || '';
+                if (data._fromSaved) {
+                    text = data._base;
+                } else {
+                    var title     = $('#title').val() || '';
+                    var shortDesc = data.short_description || '';
+                    var desc      = data.description || '';
 
-                // Use short desc if available, else first 150 chars of desc
-                var body = shortDesc ? shortDesc : plainDesc.substring(0, 150).trim();
+                    var tmp = document.createElement('div');
+                    tmp.innerHTML = desc;
+                    var plainDesc = tmp.textContent || tmp.innerText || '';
 
-                // Strip HTML from body too
-                var tmp2 = document.createElement('div');
-                tmp2.innerHTML = body;
-                body = tmp2.textContent || tmp2.innerText || body;
+                    var body = shortDesc ? shortDesc : plainDesc.substring(0, 150).trim();
 
-                var text = '*' + title + '*\n\n' + body;
+                    var tmp2 = document.createElement('div');
+                    tmp2.innerHTML = body;
+                    body = tmp2.textContent || tmp2.innerText || body;
+
+                    text = '*' + title + '*\n\n' + body;
+                }
 
                 if (inclPrice) {
                     var regPrice  = jQuery('#_regular_price').val();
@@ -499,6 +504,14 @@ class WOOLENS_Product_Editor {
                 $(document).on('change', '#wl-wa-price', rebuildWhatsApp);
 
                 $(document).on('input change', '#_regular_price, #_sale_price', rebuildWhatsApp);
+
+                // Auto-show WhatsApp area if a saved message exists (from Bulk Products)
+                if (savedWa) {
+                    var savedWaBase = savedWa.replace(/\n\nPrice:[^\n]*/g, '').trim();
+                    lastGenData = { _fromSaved: true, _base: savedWaBase };
+                    $('#wl-wa-text').val(buildWhatsApp(lastGenData));
+                    $('#wl-wa-area').show();
+                }
             }
 
         });
